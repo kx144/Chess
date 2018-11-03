@@ -1,0 +1,208 @@
+//by kx144
+
+import ddf.minim.*;
+
+PImage wpawn,bpawn,wknight,bknight,wbishop,bbishop,wrook,brook,wqueen,bqueen,wking,bking,nullpic;
+AudioPlayer s1,s2,s3,s4,s5,s6,s7;
+String path1,path2,path3,path4,path5,path6,path7;
+int clickedi = -1;
+int clickedj = -1;
+int checkedi = -1;
+int checkedj = -1;
+int ppromotion = 5;
+int promotion = -1;
+int enpassanti = -1;
+int enpassantj = -1;
+ArrayList<int[]> position = new ArrayList<int[]>();
+boolean clicked = false;
+boolean bCastleleft = true;
+boolean bCastleright = true;
+boolean wCastleleft = true;
+boolean wCastleright = true;
+int turn = 1;
+
+
+void setup() {
+  //position
+  for (int i=0;i<8;i++) {
+    int[] blank = {};
+    position.add(blank);
+  }
+  
+  //background
+  size(1000,750);
+  PImage background = loadImage("background.jpg");
+  background(background);
+  
+  //music
+  Minim m;
+  m = new Minim(this);
+  s1 = m.loadFile("file1.mp3",1024);
+  s2 = m.loadFile("file2.mp3",1024);
+  s3 = m.loadFile("file3.mp3",1024);
+  s4 = m.loadFile("file4.mp3",1024);
+  s5 = m.loadFile("file5.mp3",1024);
+  s6 = m.loadFile("file6.mp3",1024);
+  s7 = m.loadFile("file7.mp3",1024);
+  
+  //boundary
+  fill(139,69,19);
+  strokeWeight(2);
+  stroke(0);
+  rect(170,45,660,660); //boundary
+  
+  //load sprites of pieces
+  PImage chesspieces = loadImage("chesspieces.png");
+  nullpic = loadImage("meme.jpg");
+  chesspieces.resize(480,160);
+  nullpic.resize(80,80);
+  
+  wpawn = chesspieces.get(400,0,80,80);
+  bpawn = chesspieces.get(400,80,80,80);
+  wknight = chesspieces.get(240,0,80,80);
+  bknight = chesspieces.get(240,80,80,80);
+  wbishop = chesspieces.get(160,0,80,80);
+  bbishop = chesspieces.get(160,80,80,80);
+  wrook = chesspieces.get(320,0,80,80);
+  brook = chesspieces.get(320,80,80,80);
+  wqueen = chesspieces.get(80,0,80,80);
+  bqueen = chesspieces.get(80,80,80,80);
+  wking = chesspieces.get(0,0,80,80);
+  bking = chesspieces.get(0,80,80,80);
+}
+
+void draw() {
+  //music
+  if (!(s1.isPlaying() || s2.isPlaying() || s3.isPlaying() || s4.isPlaying() || s5.isPlaying() || s6.isPlaying() || s7.isPlaying())) {
+    int song = int(random(1,7));
+    switch (song) {
+      case 1:
+        s1.play();
+        break;
+      case 2:
+        s2.play();
+        break;
+      case 3:
+        s3.play();
+        break;
+      case 4:
+        s4.play();
+        break;
+      case 5:
+        s5.play();
+        break;
+      case 6:
+        s6.play();
+        break;
+      case 7:
+        s7.play();
+        break;
+    }
+  }
+  //checkerboard
+  noStroke();
+  int cbr = 255;
+  int cbg = 255;
+  int cbb = 255;
+  
+  for (int i=0;i<8;i++) {
+    for (int j=0;j<8;j++) {
+      if (i == checkedi && j == checkedj) {
+        fill(220,20,60);
+      } else {
+        if (i == clickedi && j == clickedj) {
+          fill(186,202,63);
+        } else {
+          fill(cbr,cbg,cbb);
+        }
+      }
+      
+      rect(180+80*i,55+80*j,80,80);
+      
+      cbr = 373-cbr;
+      cbg = 405-cbg;
+      cbb = 341-cbb;
+    }
+    
+    cbr = 373-cbr;
+    cbg = 405-cbg;
+    cbb = 341-cbb;
+  }
+  if (clicked == false) {
+    startingPosition();
+  }
+  drawPosition();
+}
+
+void mousePressed() {
+  clicked = true;
+  //if inside board
+  int mx = mouseX;
+  int my = mouseY;
+  
+  if (promotion > 0) {
+    promotion = -1;
+  }
+  
+  if (mx >= 180 && mx <= 820 && my >= 55 && my <= 695) {
+    //set clickedi, clickedj to values from 0 to 7 corresponding to board numbers
+    int i = (mx-180)/80;
+    int j = (my-55)/80;
+    
+    //if nothing has been selected
+    if (clickedi == -1 && clickedj == -1) {
+      //tests that there is a piece to be clicked
+      if (turn*getPiece(position,i,j) > 0) { //if the piece clicked is same color as turn, and also includes that piece clicked cannot be 0
+        clickedi = i;
+        clickedj = j;
+      } else { //resets clickedi,clickedj because spot is empty
+        clickedi = -1;
+        clickedj = -1;
+      }
+    } else { //if something has been selected
+      //tests that there is a piece to be clicked
+      if (getPiece(position,i,j)*getPiece(position,clickedi,clickedj) > 0) {
+        clickedi = i;
+        clickedj = j;
+      } else { //move the piece
+        if (checkMove(i,j,clickedi,clickedj)) {
+          setPiece(position,getPiece(position,clickedi,clickedj),i,j);
+          setPiece(position,0,clickedi,clickedj);
+          checkPromotion(position);
+          clickedi = -1;
+          clickedj = -1;
+          checkedi = -1;
+          checkedj = -1;
+          turn *= -1;
+        }
+      }
+    }
+  } else {
+    clickedi = -1;
+    clickedj = -1;
+  }
+}
+
+void keyPressed() {
+  if (key == CODED && promotion > 0) {
+    if (keyCode == RIGHT) {
+      if (ppromotion != 2) {
+        ppromotion -= 1;
+        setPiece(position,ppromotion*turn*-1,promotion,round(3.5*(1+turn)));
+      } else {
+        ppromotion = 5;
+        setPiece(position,ppromotion*turn*-1,promotion,round(3.5*(1+turn)));
+      }
+    }
+    
+    if (keyCode == LEFT) {
+      if (ppromotion != 5) {
+        ppromotion += 1;
+        setPiece(position,ppromotion*turn*-1,promotion,round(3.5*(1+turn)));
+      } else {
+        ppromotion = 2;
+        setPiece(position,ppromotion*turn*-1,promotion,round(3.5*(1+turn)));
+      }
+    }
+  }
+}
