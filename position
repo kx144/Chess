@@ -1,0 +1,97 @@
+/**
+0 = no piece
+1 = pawn
+2 = knight
+3 = bishop
+4 = rook
+5 = queen
+6 = king
+
+positive numbers are white
+negative numbers are black
+
+position = {row8,row7,...,row2,row1}
+**/
+
+void startingPosition() {
+  int[] row8 = {-4,-2,-3,-5,-6,-3,-2,-4};
+  int[] row7 = {-1,-1,-1,-1,-1,-1,-1,-1};
+  int[] row0 = {0,0,0,0,0,0,0,0};
+  int[] row2 = {1,1,1,1,1,1,1,1};
+  int[] row1 = {4,2,3,5,6,3,2,4};
+  
+  position.set(0,row8);
+  position.set(1,row7);
+  for(int i=2;i<6;i++) {
+    position.set(i,row0);
+  }
+  position.set(6,row2);
+  position.set(7,row1);
+  
+  drawPosition();
+}
+
+void drawPosition() {
+  PImage pimage;
+  
+  for (int i=0;i<8;i++) {
+    for (int j=0;j<8;j++) {
+      switch (getPiece(position,j,i)) {
+        case -6:
+          pimage = bking;
+          noTint();
+          break;
+        case -5:
+          pimage = bqueen;
+          noTint();
+          break;
+        case -4:
+          pimage = brook;
+          noTint();
+          break;
+        case -3:
+          pimage = bbishop;
+          noTint();
+          break;
+        case -2:
+          pimage = bknight;
+          noTint();
+          break;
+        case -1:
+          pimage = bpawn;
+          noTint();
+          break;
+        case 1:
+          pimage = wpawn;
+          noTint();
+          break;
+        case 2:
+          pimage = wknight;
+          noTint();
+          break;
+        case 3:
+          pimage = wbishop;
+          noTint();
+          break;
+        case 4:
+          pimage = wrook;
+          noTint();
+          break;
+        case 5:
+          pimage = wqueen;
+          noTint();
+          break;
+        case 6:
+          pimage = wking;
+          noTint();
+          break;
+        default:
+          pimage = nullpic;
+          tint(255,0);
+      }
+      
+      //draw image
+      image(pimage,180+80*j,55+80*i);
+    }
+  }
+}
